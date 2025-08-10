@@ -1,3 +1,14 @@
+
+# 🍉Support Humanitarian Efforts in Palestine🍉
+
+The ongoing humanitarian crisis in Palestine has left millions in urgent need of aid. If you're looking to make a difference, consider supporting trusted organizations working on the ground to provide food, medical care, and essential relief:
+- [UN Crisis Relief – Occupied Palestinian Territory Humanitarian Fund](https://crisisrelief.un.org/en/opt-crisis)
+- [Palestine Children's Relief Fund ](https://www.pcrf.net/)
+- [Doctors Without Borders](https://www.doctorswithoutborders.org/)
+- [Anera (American Near East Refugee Aid)](https://www.anera.org/)
+- [Save the Children](https://www.savethechildren.org/us/where-we-work/west-bank-gaza)
+<br></br>
+
 # Lavender 🌸
 
 **Smart contract gas optimization service for Ethereum DeFi**
