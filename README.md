@@ -145,8 +145,8 @@ This is currently a solo project in early development. Future contributors welco
 
 ## 📞 Contact
 
-Project by: [Your Name]
-Development Updates: [Track progress in commits]
+Project by: Jack Fredericksen
+
 
 ---
 
