@@ -20,7 +20,8 @@ describe("Lavender BatchExecutor Contract", function() {
     
     // Deploy Lavender contract
     const LavenderFactory = await ethers.getContractFactory("Lavender");
-    lavender = await LavenderFactory.deploy();
+    // OpenZeppelin v5 requires initial owner parameter
+    lavender = await LavenderFactory.deploy(owner.address);
     await lavender.deployed();
     
     console.log(`🌸 Lavender deployed at: ${lavender.address}`);
@@ -35,7 +36,7 @@ describe("Lavender BatchExecutor Contract", function() {
       expect(await lavender.owner()).to.equal(owner.address);
       expect(await lavender.feePercentage()).to.equal(1500); // 15%
       expect(await lavender.UNISWAP_V3_ROUTER()).to.equal(UNISWAP_ROUTER);
-      expect(await lavender.AAVE_V3_POOL()).to.equal(AAVE_POOL);
+      
     });
   });
 
@@ -55,7 +56,7 @@ describe("Lavender BatchExecutor Contract", function() {
         fee: 3000, // 0.3%
         amountIn: swapAmount,
         amountOutMinimum: 0,
-        aavePool: AAVE_POOL,
+        aavePool: AAVE_POOL, // Pass as parameter since it's not a constant anymore
         referralCode: 0
       };
       
@@ -195,7 +196,7 @@ describe("Lavender BatchExecutor Contract", function() {
     it("Should not allow non-owner to change fee", async function() {
       await expect(
         lavender.connect(user).setFeePercentage(1000)
-      ).to.be.revertedWith("Ownable: caller is not the owner");
+      ).to.be.revertedWith("OwnableUnauthorizedAccount");
     });
   });
 

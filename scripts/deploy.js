@@ -13,20 +13,24 @@ async function main() {
   const LavenderFactory = await ethers.getContractFactory("Lavender");
   
   console.log("📦 Deploying Lavender contract...");
-  const lavender = await LavenderFactory.deploy();
+  // OpenZeppelin v5 requires initial owner in constructor
+  const lavender = await LavenderFactory.deploy(deployer.address);
   await lavender.deployed();
 
   console.log("✅ Lavender deployed successfully!");
   console.log("📍 Contract address:", lavender.address);
   console.log("🔗 Deployment transaction:", lavender.deployTransaction.hash);
   
+  // Add the Aave pool address that we removed from constants
+  const AAVE_V3_POOL = "0x87870Bca3F3fD6335C3F4Ce8392D69350B4fA4E2";
+  
   // Verify initial configuration
   console.log("\n🔧 Initial Configuration:");
   console.log("Owner:", await lavender.owner());
   console.log("Fee percentage:", await lavender.feePercentage(), "basis points (15%)");
   console.log("Uniswap V3 Router:", await lavender.UNISWAP_V3_ROUTER());
-  console.log("Aave V3 Pool:", await lavender.AAVE_V3_POOL());
   console.log("WETH address:", await lavender.WETH());
+  console.log("Aave V3 Pool (for params):", AAVE_V3_POOL);
 
   // Gas usage report
   const deploymentReceipt = await lavender.deployTransaction.wait();

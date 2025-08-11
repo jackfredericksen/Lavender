@@ -30,6 +30,12 @@ module.exports = {
       gas: 30000000,
       gasPrice: 1000000000 // 1 gwei
     },
+    sepolia: {
+      url: `https://sepolia.infura.io/v3/${process.env.INFURA_KEY}`,
+      accounts: process.env.PRIVATE_KEY && process.env.PRIVATE_KEY.length === 66 ? [process.env.PRIVATE_KEY] : [],
+      gas: 6000000,
+      gasPrice: 20000000000 // 20 gwei
+    },
     mainnet: {
       url: process.env.RPC_URL || `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
       accounts: process.env.PRIVATE_KEY && process.env.PRIVATE_KEY.length === 66 ? [process.env.PRIVATE_KEY] : []

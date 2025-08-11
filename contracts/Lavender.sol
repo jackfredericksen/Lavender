@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.28;
+pragma solidity ^0.8.20;
 
 import "./interfaces/DeFiInterfaces.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
@@ -58,9 +58,8 @@ contract Lavender is ReentrancyGuard, Ownable {
     //                        CONSTANTS
     // =============================================================
     
-    // Mainnet contract addresses
+    // Mainnet contract addresses - using exact checksums
     address public constant UNISWAP_V3_ROUTER = 0xE592427A0AEce92De3Edee1F18E0157C05861564;
-    address public constant AAVE_V3_POOL = 0x87870Bca3F3fD6335C3F4Ce8392D69350B4fA4E2;
     address public constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
     
     // Fee configuration
@@ -74,6 +73,14 @@ contract Lavender is ReentrancyGuard, Ownable {
     modifier validFee(uint256 _fee) {
         require(_fee <= MAX_FEE, "Fee too high");
         _;
+    }
+    
+    // =============================================================
+    //                       CONSTRUCTOR
+    // =============================================================
+    
+    constructor(address initialOwner) Ownable(initialOwner) {
+        // OpenZeppelin v5 requires initial owner in constructor
     }
     
     // =============================================================
@@ -209,7 +216,7 @@ contract Lavender is ReentrancyGuard, Ownable {
     //                      VIEW FUNCTIONS
     // =============================================================
     
-    function estimateGasSavings(uint256 separateGasUsed) external view returns (uint256 savings) {
+    function estimateGasSavings(uint256 separateGasUsed) external pure returns (uint256 savings) {
         // Conservative estimate: 25% savings
         return separateGasUsed / 4;
     }

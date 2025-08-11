@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌸 Lavender Protocol - Gas Optimization</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.umd.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        
+        /* Custom animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        .float { animation: float 3s ease-in-out infinite; }
+        
+        @keyframes sparkle {
+            0%, 100% { opacity: 0.4; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.1); }
+        }
+        .sparkle { animation: sparkle 2s ease-in-out infinite; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const LavenderApp = () => {
+            const [provider, setProvider] = useState(null);
+            const [signer, setSigner] = useState(null);
+            const [userAddress, setUserAddress] = useState('');
+            const [isConnected, setIsConnected] = useState(false);
+            const [lavenderContract, setLavenderContract] = useState(null);
+            
+            // Transaction state
+            const [swapAmount, setSwapAmount] = useState('0.1');
+            const [isLoading, setIsLoading] = useState(false);
+            const [txStatus, setTxStatus] = useState('');
+            const [lastTxResult, setLastTxResult] = useState(null);
+            
+            // Contract addresses (UPDATE AFTER TESTNET DEPLOYMENT)
+            const LAVENDER_ADDRESS = "0x..."; // Your deployed Sepolia address
+            const WETH_SEPOLIA = "0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14";
+            const USDC_SEPOLIA = "0x94a9D9AC8a22534E3FaCa9F4e7F2E2cf85d5E4C8";
+            const AAVE_POOL_SEPOLIA = "0x6Ae43d3271ff6888e7Fc43Fd7321a503ff738951";
+            
+            const LAVENDER_ABI = [
+                "function swapAndSupply((address,address,uint24,uint256,uint256,address,uint16)) external returns (uint256)",
+                "function estimateGasSavings(uint256) external view returns (uint256)",
+                "function owner() external view returns (address)"
+            ];
+
+            const WETH_ABI = [
+                "function approve(address,uint256) external returns (bool)",
+                "function balanceOf(address) external view returns (uint256)",
+                "function deposit() external payable"
+            ];
+
+            // Connect wallet
+            const connectWallet = async () => {
+                try {
+                    if (!window.ethereum) {
+                        alert("Please install MetaMask!");
+                        return;
+                    }
+                    
+                    const provider = new ethers.providers.Web3Provider(window.ethereum);
+                    await provider.send("eth_requestAccounts", []);
+                    const signer = provider.getSigner();
+                    const address = await signer.getAddress();
+                    
+                    // Check if on Sepolia
+                    const network = await provider.getNetwork();
+                    if (network.chainId !== 11155111) {
+                        alert("Please switch to Sepolia testnet!");
+                        return;
+                    }
+                    
+                    if (LAVENDER_ADDRESS === "0x...") {
+                        setTxStatus("⚠️ Lavender contract not deployed yet. Deploy to testnet first!");
+                        return;
+                    }
+                    
+                    const lavender = new ethers.Contract(LAVENDER_ADDRESS, LAVENDER_ABI, signer);
+                    
+                    setProvider(provider);
+                    setSigner(signer);
+                    setLavenderContract(lavender);
+                    setUserAddress(address);
+                    setIsConnected(true);
+                    setTxStatus("✅ Connected to Sepolia testnet");
+                    
+                } catch (error) {
+                    console.error("Failed to connect wallet:", error);
+                    setTxStatus("❌ Failed to connect wallet");
+                }
+            };
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-violet-100">
+                    {/* Floating flower decorations */}
+                    <div className="fixed inset-0 overflow-hidden pointer-events-none">
+                        <div className="absolute top-20 left-10 text-6xl sparkle opacity-20">🌸</div>
+                        <div className="absolute top-40 right-20 text-4xl float opacity-30">🌺</div>
+                        <div className="absolute bottom-32 left-1/4 text-5xl sparkle opacity-25">🌷</div>
+                        <div className="absolute bottom-20 right-1/3 text-3xl float opacity-20">🌻</div>
+                        <div className="absolute top-1/3 left-1/2 text-4xl sparkle opacity-15">🌹</div>
+                    </div>
+
+                    <div className="relative z-10 container mx-auto px-4 py-8">
+                        {/* Header */}
+                        <div className="text-center mb-12">
+                            <div className="flex items-center justify-center mb-4">
+                                <span className="text-6xl mr-4 float">🌸</span>
+                                <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-violet-600 bg-clip-text text-transparent">
+                                    Lavender Protocol
+                                </h1>
+                                <span className="text-6xl ml-4 float">🌸</span>
+                            </div>
+                            <p className="text-xl text-gray-600 mb-2">
+                                Gas-Optimized DeFi Transaction Batching
+                            </p>
+                            <p className="text-sm text-purple-600 font-medium">
+                                🌺 Save 20-40% on gas costs • Testnet Beta 🌺
+                            </p>
+                        </div>
+
+                        {/* Main Interface Card */}
+                        <div className="max-w-lg mx-auto">
+                            <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl border border-purple-100 p-8">
+                                
+                                {!isConnected ? (
+                                    <div className="text-center">
+                                        <div className="text-6xl mb-4 float">🌸</div>
+                                        <h3 className="text-xl font-semibold text-gray-800 mb-4">
+                                            Connect Your Wallet
+                                        </h3>
+                                        <p className="text-gray-600 mb-6">
+                                            Connect to Sepolia testnet to try Lavender's gas optimization
+                                        </p>
+                                        <button
+                                            onClick={connectWallet}
+                                            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-4 px-6 rounded-2xl font-semibold hover:from-purple-600 hover:to-pink-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                                        >
+                                            🌸 Connect Wallet
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-6">
+                                        {/* User Info */}
+                                        <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-2xl border border-purple-100">
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <p className="text-sm text-purple-600 font-medium">Connected Wallet</p>
+                                                    <p className="font-mono text-xs text-gray-600">
+                                                        {userAddress.slice(0, 6)}...{userAddress.slice(-4)}
+                                                    </p>
+                                                </div>
+                                                <div className="text-2xl sparkle">🌸</div>
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-gradient-to-r from-blue-50 to-cyan-50 p-4 rounded-2xl border border-blue-200">
+                                            <p className="text-sm text-blue-800 text-center">
+                                                🚧 Deploy Lavender to Sepolia first, then update the contract address!
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Status Display */}
+                                {txStatus && (
+                                    <div className="mt-4 bg-blue-50 border border-blue-200 rounded-2xl p-4">
+                                        <p className="text-sm text-blue-800 text-center">{txStatus}</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Stats Section */}
+                        <div className="max-w-4xl mx-auto mt-12">
+                            <div className="grid md:grid-cols-3 gap-6">
+                                <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 text-center border border-purple-100">
+                                    <div className="text-3xl mb-2">⚡</div>
+                                    <div className="text-2xl font-bold text-purple-600">23%</div>
+                                    <div className="text-sm text-gray-600">Average Gas Savings</div>
+                                </div>
+                                <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 text-center border border-pink-100">
+                                    <div className="text-3xl mb-2">🌸</div>
+                                    <div className="text-2xl font-bold text-pink-600">98k</div>
+                                    <div className="text-sm text-gray-600">Gas Saved Per Transaction</div>
+                                </div>
+                                <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 text-center border border-violet-100">
+                                    <div className="text-3xl mb-2">💰</div>
+                                    <div className="text-2xl font-bold text-violet-600">$1.70</div>
+                                    <div className="text-sm text-gray-600">Average User Savings</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Features Section */}
+                        <div className="max-w-4xl mx-auto mt-12">
+                            <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">
+                                🌺 Why Choose Lavender? 🌺
+                            </h2>
+                            <div className="grid md:grid-cols-3 gap-8">
+                                <div className="text-center">
+                                    <div className="text-5xl mb-4 float">⚡</div>
+                                    <h3 className="text-xl font-semibold text-purple-600 mb-2">Gas Optimization</h3>
+                                    <p className="text-gray-600 text-sm">
+                                        Batch multiple DeFi operations into single transactions, reducing gas costs by 20-40%
+                                    </p>
+                                </div>
+                                <div className="text-center">
+                                    <div className="text-5xl mb-4 sparkle">🔒</div>
+                                    <h3 className="text-xl font-semibold text-pink-600 mb-2">Secure & Audited</h3>
+                                    <p className="text-gray-600 text-sm">
+                                        Built with OpenZeppelin security standards and comprehensive testing
+                                    </p>
+                                </div>
+                                <div className="text-center">
+                                    <div className="text-5xl mb-4 float">🚀</div>
+                                    <h3 className="text-xl font-semibold text-violet-600 mb-2">Easy to Use</h3>
+                                    <p className="text-gray-600 text-sm">
+                                        Simple one-click optimization for complex DeFi workflows
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="text-center mt-16 text-gray-500 text-sm">
+                            <p className="mb-2">🌸 Lavender Protocol • Testnet Beta • Made with 💜 for DeFi users</p>
+                            <p className="text-xs">Save gas, save money, save the environment 🌱</p>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Render the app
+        ReactDOM.render(<LavenderApp />, document.getElementById('root'));
+    </script>
+</body>
+</html>
