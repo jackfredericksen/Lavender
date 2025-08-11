@@ -2,7 +2,7 @@ require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-ethers");
 require("hardhat-gas-reporter");
 require("hardhat-contract-sizer");
-require("@tenderly/hardhat-tenderly");
+// require("@tenderly/hardhat-tenderly"); // Temporarily disabled
 require('dotenv').config();
 
 module.exports = {
@@ -49,8 +49,8 @@ module.exports = {
     runOnCompile: true,
     disambiguatePaths: false,
   },
-  tenderly: {
-    username: process.env.TENDERLY_USERNAME,
-    project: process.env.TENDERLY_PROJECT
-  }
+  // tenderly: {
+  //   username: process.env.TENDERLY_USERNAME,
+  //   project: process.env.TENDERLY_PROJECT
+  // }
 };

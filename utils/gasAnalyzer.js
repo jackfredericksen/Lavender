@@ -15,10 +15,10 @@ class GasAnalyzer {
     const measurement = {
       name,
       description,
-      gasUsed: receipt.gasUsed.toNumber(),
-      gasPrice: tx.gasPrice ? tx.gasPrice.toNumber() : 0,
-      gasCost: receipt.gasUsed.mul(tx.gasPrice || 0),
-      txHash: receipt.transactionHash
+      gasUsed: Number(receipt.gasUsed), // Convert BigInt to Number
+      gasPrice: tx.gasPrice ? Number(tx.gasPrice) : 0,
+      gasCost: receipt.gasUsed * (tx.gasPrice || 0n), // Keep as BigInt for calculations
+      txHash: receipt.hash
     };
     
     this.measurements.push(measurement);
@@ -35,7 +35,7 @@ class GasAnalyzer {
     // Estimate gas first
     try {
       const estimatedGas = await contractInstance.estimateGas[functionName](...args);
-      console.log(`📊 Estimated Gas: ${estimatedGas.toNumber().toLocaleString()}`);
+      console.log(`📊 Estimated Gas: ${Number(estimatedGas).toLocaleString()}`);
     } catch (error) {
       console.log(`⚠️  Gas estimation failed: ${error.message}`);
     }
@@ -48,7 +48,7 @@ class GasAnalyzer {
   compareMeasurements(baseline, optimized) {
     const gasSaved = baseline.gasUsed - optimized.gasUsed;
     const percentSaved = ((gasSaved / baseline.gasUsed) * 100).toFixed(2);
-    const costSaved = baseline.gasCost.sub(optimized.gasCost);
+    const costSaved = baseline.gasCost - optimized.gasCost;
 
     console.log(`\n📈 OPTIMIZATION RESULTS:`);
     console.log(`Original Gas: ${baseline.gasUsed.toLocaleString()}`);
@@ -84,15 +84,19 @@ class GasAnalyzer {
     const tx = await provider.getTransaction(txHash);
     const receipt = await provider.getTransactionReceipt(txHash);
 
+    if (!tx || !receipt) {
+      throw new Error(`Transaction ${txHash} not found`);
+    }
+
     console.log(`\n🔍 Analyzing Mainnet TX: ${txHash}`);
-    console.log(`⛽ Gas Used: ${receipt.gasUsed.toNumber().toLocaleString()}`);
-    console.log(`💰 Gas Price: ${ethers.utils.formatUnits(tx.gasPrice, 'gwei')} gwei`);
-    console.log(`💵 Total Cost: ${ethers.utils.formatEther(receipt.gasUsed.mul(tx.gasPrice))} ETH`);
+    console.log(`⛽ Gas Used: ${Number(receipt.gasUsed).toLocaleString()}`);
+    console.log(`💰 Gas Price: ${ethers.formatUnits(tx.gasPrice, 'gwei')} gwei`);
+    console.log(`💵 Total Cost: ${ethers.utils.formatEther(receipt.gasUsed * tx.gasPrice)} ETH`);
 
     return {
-      gasUsed: receipt.gasUsed.toNumber(),
-      gasPrice: tx.gasPrice.toNumber(),
-      totalCost: receipt.gasUsed.mul(tx.gasPrice)
+      gasUsed: Number(receipt.gasUsed),
+      gasPrice: Number(tx.gasPrice),
+      totalCost: receipt.gasUsed * tx.gasPrice
     };
   }
 }

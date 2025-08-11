@@ -7,11 +7,11 @@ describe("Lavender Baseline Gas Analysis", function() {
   let analyzer;
   let signer;
   
-  // Mainnet contract addresses
+  // Mainnet contract addresses (with proper checksums)
   const UNISWAP_ROUTER = "0xE592427A0AEce92De3Edee1F18E0157C05861564";
-  const AAVE_POOL = "0x87870Bcd3e6b1f57c7F0cf58b7dB86b6b52c7d4a";
+  const AAVE_POOL = ethers.utils.getAddress("0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2");
   const WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
-  const USDC = "0xA0b86a33E6417c8ee86d89C6E9f1e35C1DB4D0A3";
+  const USDC = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"; // Correct USDC address
 
   beforeEach(async function() {
     analyzer = new GasAnalyzer();
@@ -19,7 +19,7 @@ describe("Lavender Baseline Gas Analysis", function() {
     
     // Get some WETH for testing
     const weth = await ethers.getContractAt("IWETH", WETH);
-    await weth.deposit({ value: ethers.parseEther("10") });
+    await weth.deposit({ value: ethers.utils.parseEther("10") });
   });
 
   it("Should measure Uniswap V3 swap gas usage", async function() {
@@ -30,7 +30,7 @@ describe("Lavender Baseline Gas Analysis", function() {
     await analyzer.measureFunction(
       weth, 
       "approve", 
-      [UNISWAP_ROUTER, ethers.parseEther("1")],
+      [UNISWAP_ROUTER, ethers.utils.parseEther("1")],
       "WETH approval for Uniswap"
     );
 
